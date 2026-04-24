@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>SHA3</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<script src="./stringEncoder.js"></script>
+	<script src="./SHA3.js"></script>
+</head>
+
+<body>
+	<p id="aa"></p>
+	<p id="bb"></p>
+	<p id="cc"></p>
+	<p id="dd"></p>
+	<p id="ee"></p>
+	<p id="ff"></p>
+	<p id="gg"></p>
+	<p id="hh"></p>
+	<p id="ii"></p>
+	<p id="jj"></p>
+	<p id="kk"></p>
+	<p id="ll"></p>
+	<p id="mm"></p>
+	<p id="nn"></p>
+	<script>
+		const inputData = encodeUTF8("你好，世界")
+
+		document.getElementById("aa").innerHTML = `输入：${decodeUTF8(inputData)}`
+		document.getElementById("bb").innerHTML = `SHA3-224值：${byte2hex(SHA3(inputData, 224))}`
+		document.getElementById("cc").innerHTML = `SHA3-256值：${byte2hex(SHA3(inputData, 256))}`
+		document.getElementById("dd").innerHTML = `SHA3-384值：${byte2hex(SHA3(inputData, 384))}`
+		document.getElementById("ee").innerHTML = `SHA3-512值：${byte2hex(SHA3(inputData, 512))}`
+		document.getElementById("ff").innerHTML = `SHAKE128值（输出128位）：${byte2hex(SHAKE128(inputData, 128))}`
+		document.getElementById("gg").innerHTML = `SHAKE128值（输出256位）：${byte2hex(SHAKE128(inputData, 256))}`
+		document.getElementById("hh").innerHTML = `SHAKE256值（输出256位）：${byte2hex(SHAKE256(inputData, 256))}`
+		document.getElementById("ii").innerHTML = `SHAKE256值（输出512位）：${byte2hex(SHAKE256(inputData, 512))}`
+
+		const key = encodeUTF8("114514")
+
+		document.getElementById("jj").innerHTML = `密钥：${decodeUTF8(key)}`
+		document.getElementById("kk").innerHTML = `HMAC SHA3-224值：${byte2hex(HMAC_SHA3(inputData, key, 224))}`
+		document.getElementById("ll").innerHTML = `HMAC SHA3-256值：${byte2hex(HMAC_SHA3(inputData, key, 256))}`
+		document.getElementById("mm").innerHTML = `HMAC SHA3-384值：${byte2hex(HMAC_SHA3(inputData, key, 384))}`
+		document.getElementById("nn").innerHTML = `HMAC SHA3-512值：${byte2hex(HMAC_SHA3(inputData, key, 512))}`
+	</script>
+</body>
+
+</html>

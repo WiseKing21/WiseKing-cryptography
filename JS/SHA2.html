@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>SHA2</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<script src="./stringEncoder.js"></script>
+	<script src="./SHA_256.js"></script>
+	<script src="./SHA_512.js"></script>
+</head>
+
+<body>
+	<p id="aa"></p>
+	<p id="bb"></p>
+	<p id="cc"></p>
+	<p id="dd"></p>
+	<p id="ee"></p>
+	<p id="ff"></p>
+	<script>
+		const inputData = encodeUTF8("你好，世界")
+
+		document.getElementById("aa").innerHTML = `输入：${decodeUTF8(inputData)}`
+		document.getElementById("bb").innerHTML = `SHA-256值：${byte2hex(SHA256(inputData))}`
+		document.getElementById("cc").innerHTML = `SHA-512值：${byte2hex(SHA512(inputData))}`
+
+		const key = encodeUTF8("114514")
+
+		document.getElementById("dd").innerHTML = `密钥：${decodeUTF8(key)}`
+		document.getElementById("ee").innerHTML = `HMAC SHA-256值：${byte2hex(HMAC_SHA256(inputData, key))}`
+		document.getElementById("ff").innerHTML = `HMAC SHA-512值：${byte2hex(HMAC_SHA512(inputData, key))}`
+	</script>
+</body>
+
+</html>

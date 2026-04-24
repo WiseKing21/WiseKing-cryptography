@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>AES-256 CFB8</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<script src="./stringEncoder.js"></script>
+	<script src="./AES_256_CFB8.js"></script>
+</head>
+
+<body>
+	<p id="aa"></p>
+	<p id="bb"></p>
+	<p id="cc"></p>
+	<p id="dd"></p>
+	<script>
+		const inputData = encodeUTF8("你好，世界")
+		const key = encodeUTF8("s5s5ejuDru4uchuF2drUFuthaspAbepE")
+		const encrypted = byte2hex(AESEncrypt(inputData, key))
+
+		document.getElementById("aa").innerHTML = `加密前：${decodeUTF8(inputData)}`
+		document.getElementById("bb").innerHTML = `密钥：${decodeUTF8(key)}`
+		document.getElementById("cc").innerHTML = `加密后：${encrypted}`
+		document.getElementById("dd").innerHTML = `解密后：${decodeUTF8(AESDecrypt(hex2byte(encrypted), key))}`
+	</script>
+</body>
+
+</html>
