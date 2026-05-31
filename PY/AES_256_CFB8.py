@@ -1,0 +1,200 @@
+Nr = 14# 14轮循环运算，密钥长度为256位（32字节）
+Nb = 8# 32/4=8
+
+# S盒
+S_box = (
+	0x63, 0x7C, 0x77, 0x7B, 0xF2, 0x6B, 0x6F, 0xC5, 0x30, 0x01, 0x67, 0x2B, 0xFE, 0xD7, 0xAB, 0x76,
+	0xCA, 0x82, 0xC9, 0x7D, 0xFA, 0x59, 0x47, 0xF0, 0xAD, 0xD4, 0xA2, 0xAF, 0x9C, 0xA4, 0x72, 0xC0,
+	0xB7, 0xFD, 0x93, 0x26, 0x36, 0x3F, 0xF7, 0xCC, 0x34, 0xA5, 0xE5, 0xF1, 0x71, 0xD8, 0x31, 0x15,
+	0x04, 0xC7, 0x23, 0xC3, 0x18, 0x96, 0x05, 0x9A, 0x07, 0x12, 0x80, 0xE2, 0xEB, 0x27, 0xB2, 0x75,
+	0x09, 0x83, 0x2C, 0x1A, 0x1B, 0x6E, 0x5A, 0xA0, 0x52, 0x3B, 0xD6, 0xB3, 0x29, 0xE3, 0x2F, 0x84,
+	0x53, 0xD1, 0x00, 0xED, 0x20, 0xFC, 0xB1, 0x5B, 0x6A, 0xCB, 0xBE, 0x39, 0x4A, 0x4C, 0x58, 0xCF,
+	0xD0, 0xEF, 0xAA, 0xFB, 0x43, 0x4D, 0x33, 0x85, 0x45, 0xF9, 0x02, 0x7F, 0x50, 0x3C, 0x9F, 0xA8,
+	0x51, 0xA3, 0x40, 0x8F, 0x92, 0x9D, 0x38, 0xF5, 0xBC, 0xB6, 0xDA, 0x21, 0x10, 0xFF, 0xF3, 0xD2,
+	0xCD, 0x0C, 0x13, 0xEC, 0x5F, 0x97, 0x44, 0x17, 0xC4, 0xA7, 0x7E, 0x3D, 0x64, 0x5D, 0x19, 0x73,
+	0x60, 0x81, 0x4F, 0xDC, 0x22, 0x2A, 0x90, 0x88, 0x46, 0xEE, 0xB8, 0x14, 0xDE, 0x5E, 0x0B, 0xDB,
+	0xE0, 0x32, 0x3A, 0x0A, 0x49, 0x06, 0x24, 0x5C, 0xC2, 0xD3, 0xAC, 0x62, 0x91, 0x95, 0xE4, 0x79,
+	0xE7, 0xC8, 0x37, 0x6D, 0x8D, 0xD5, 0x4E, 0xA9, 0x6C, 0x56, 0xF4, 0xEA, 0x65, 0x7A, 0xAE, 0x08,
+	0xBA, 0x78, 0x25, 0x2E, 0x1C, 0xA6, 0xB4, 0xC6, 0xE8, 0xDD, 0x74, 0x1F, 0x4B, 0xBD, 0x8B, 0x8A,
+	0x70, 0x3E, 0xB5, 0x66, 0x48, 0x03, 0xF6, 0x0E, 0x61, 0x35, 0x57, 0xB9, 0x86, 0xC1, 0x1D, 0x9E,
+	0xE1, 0xF8, 0x98, 0x11, 0x69, 0xD9, 0x8E, 0x94, 0x9B, 0x1E, 0x87, 0xE9, 0xCE, 0x55, 0x28, 0xDF,
+	0x8C, 0xA1, 0x89, 0x0D, 0xBF, 0xE6, 0x42, 0x68, 0x41, 0x99, 0x2D, 0x0F, 0xB0, 0x54, 0xBB, 0x16
+)
+
+# 辅助函数：字节旋转（向左移动1字节）
+def rotBArr(bArr):
+	tmp = bArr[0]
+
+	del bArr[0]
+	bArr.append(tmp)
+
+	return bArr
+
+# 密钥扩展
+def keyExpansion(key):
+	if not len(key) == 32:
+		raise ValueError("key must be 32 bytes")
+
+	RCon = [0x00, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1B, 0x36]# 轮常量
+	keySchedule = [0] * 60
+
+	for row in range(Nb):
+		keySchedule[row] = [key[row * 4], key[row * 4 + 1], key[row * 4 + 2], key[row * 4 + 3]]
+
+	for row in range(Nb, 4 * (Nr + 1)):
+		tmp = [keySchedule[row - 1][0], keySchedule[row - 1][1], keySchedule[row - 1][2], keySchedule[row - 1][3]]
+
+		if row % Nb == 0:# 8的倍数
+			# 向左移动1字节
+			tmp.append(rotBArr(tmp))
+
+			# 字节替换
+			tmp[0] = S_box[tmp[0]]
+			tmp[1] = S_box[tmp[1]]
+			tmp[2] = S_box[tmp[2]]
+			tmp[3] = S_box[tmp[3]]
+
+			# 和轮常量异或
+			tmp[0] ^= RCon[row // Nb]
+		elif Nb > 6 and row % Nb == 4:# 非8的倍数
+			# 字节替换
+			tmp[0] = S_box[tmp[0]]
+			tmp[1] = S_box[tmp[1]]
+			tmp[2] = S_box[tmp[2]]
+			tmp[3] = S_box[tmp[3]]
+
+		keySchedule[row] = [keySchedule[row - Nb][0] ^ tmp[0], keySchedule[row - Nb][1] ^ tmp[1], keySchedule[row - Nb][2] ^ tmp[2], keySchedule[row - Nb][3] ^ tmp[3]]
+
+	return keySchedule
+
+# 字节替换
+def subBytes(state):
+	for row in range(4):
+		for col in range(4):
+			state[row][col] = S_box[state[row][col]]
+
+# 行移位
+def shiftRows(state):
+	tmp = [0] * 4
+
+	for row in range(1, 4):
+		for col in range(4):
+			tmp[col] = state[row][(col + 4 + row) % 4]# 向左移动
+
+		for col in range(4):
+			state[row][col] = tmp[col]
+
+# 有限域的乘法 GF(2^8)
+def GF_2_8_mul(a, b):
+	result = 0
+
+	for cnt in range(8):
+		if not b & 1 == 0:
+			result ^= a
+
+		highBitSet = a & 0x80
+		a = (a << 1) & 0xFF
+
+		if not highBitSet == 0:
+			a ^= 0x1B
+
+		b >>= 1
+
+	return result
+
+# 列混淆
+def mixColumns(state):
+	for col in range(4):
+		s0 = state[0][col]
+		s1 = state[1][col]
+		s2 = state[2][col]
+		s3 = state[3][col]
+
+		state[0][col] = GF_2_8_mul(s0, 0x02) ^ GF_2_8_mul(s1, 0x03) ^ s2 ^ s3
+		state[1][col] = s0 ^ GF_2_8_mul(s1, 0x02) ^ GF_2_8_mul(s2, 0x03) ^ s3
+		state[2][col] = s0 ^ s1 ^ GF_2_8_mul(s2, 0x02) ^ GF_2_8_mul(s3, 0x03)
+		state[3][col] = GF_2_8_mul(s0, 0x03) ^ s1 ^ s2 ^ GF_2_8_mul(s3, 0x02)
+
+# 轮密钥加
+def addRoundKey(state, keySchedule, rnd):
+	for row in range(4):
+		for col in range(4):
+			state[row][col] ^= keySchedule[rnd * 4 + col][row]
+
+# 分组加密
+def encryptBlock(plainBlock, keySchedule):
+	state = [# 初始化状态矩阵
+		[0, 0, 0, 0],
+		[0, 0, 0, 0],
+		[0, 0, 0, 0],
+		[0, 0, 0, 0]
+	]
+
+	# 明文块输入
+	for row in range(4):
+		for col in range(4):
+			state[row][col] = plainBlock[col * 4 + row]
+
+	# 初始变换（添加主密钥）
+	for row in range(4):
+		for col in range(4):
+			state[row][col] ^= keySchedule[col][row]
+
+	# 第1...13轮加密操作
+	for rnd in range(1, Nr):
+		subBytes(state)# 字节替换
+		shiftRows(state)# 行移位
+		mixColumns(state)# 列混淆
+		addRoundKey(state, keySchedule, rnd)# 轮密钥加
+
+	# 第14轮加密操作
+	subBytes(state)
+	shiftRows(state)
+	addRoundKey(state, keySchedule, Nr)
+
+	# 只返回第一个字节
+	return state[0][0]
+
+# AES-256 CFB8 加密
+def AES_CFB8_Encrypt(plain_text, key):
+	iv = list(key[:16])
+	cipher_text = []
+
+	for b in plain_text:
+		cipher_segment = b ^ encryptBlock(iv, keyExpansion(key))
+
+		cipher_text.append(cipher_segment)
+		del iv[0]
+		iv.append(cipher_segment)
+
+	return bytes(cipher_text)
+
+# AES-256 CFB8 解密
+def AES_CFB8_Decrypt(cipher_text, key):
+	iv = list(key[:16])
+	plain_text = []
+
+	for b in cipher_text:
+		plain_text.append(b ^ encryptBlock(iv, keyExpansion(key)))
+		del iv[0]
+		iv.append(b)
+
+	return bytes(plain_text)
+
+
+if __name__ == "__main__":
+	input_data = "你好，世界".encode("utf-8")
+	key = "s5s5ejuDru4uchuF2drUFuthaspAbepE".encode("utf-8")
+	encrypted = AES_CFB8_Encrypt(input_data, key).hex()
+
+	print(f"\n加密前：{input_data.decode("utf-8")}")
+	print(f"\n密钥：{key.decode("utf-8")}")
+	print(f"\n加密后：{encrypted}")
+	print(f"\n解密后：{AES_CFB8_Decrypt(bytes.fromhex(encrypted), key).decode("utf-8")}\n")
+
+"""
+AES_CFB8_Encrypt(<明文：字节>, <密钥：字节>)
+AES_CFB8_Decrypt(<密文：字节>, <密钥：字节>)
+*密钥必须为32字节
+*初始化向量是密钥的前16字节
+"""
